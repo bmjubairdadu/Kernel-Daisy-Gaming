@@ -38,9 +38,11 @@ def get_perms(path):
 # Collect files in deterministic order matching AK3 convention
 files = []
 for root, dirs, filenames in os.walk(AK3):
-    # Skip .git
+    # Skip .git and exclude placeholder files (AK3 spec deletes them before repack)
     dirs[:] = [d for d in dirs if d != ".git"]
     for fn in filenames:
+        if fn == "placeholder":
+            continue
         fp = Path(root) / fn
         arc = fp.relative_to(AK3).as_posix()  # Always unix slashes - CRITICAL for recovery!
         files.append((fp, arc))
