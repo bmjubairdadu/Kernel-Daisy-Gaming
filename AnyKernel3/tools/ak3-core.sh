@@ -983,6 +983,25 @@ setup_ak() {
           elif [ -e /dev/$part ]; then
             target=/dev/$part;
           fi;
+          # Extra: use fstab fallback - parse /etc/recovery.fstab, /etc/fstab, /fstab.*
+          # Some TWRP (daisy) only lists boot in fstab without /dev/block symlink
+          if [ ! "$target" ]; then
+            for fstab in /etc/recovery.fstab /etc/fstab /fstab.* /system/etc/recovery.fstab; do
+              [ -f "$fstab" ] || continue;
+              fstab_target=$(grep -w "$part" "$fstab" 2>/dev/null | grep -v "^#" | awk '{print $2" "$1" "$3}' | grep -E "(/boot|/dev)" | awk '{print $1}' | head -n1);
+              # Also try simpler: grep boot then first /dev path
+              if [ ! "$fstab_target" -o ! -e "$fstab_target" ]; then
+                fstab_target=$(grep -w "$part" "$fstab" 2>/dev/null | grep -o "/dev/[^ ]*" | head -n1);
+              fi;
+              if [ "$fstab_target" ] && [ -e "$fstab_target" ]; then
+                target=$fstab_target; break;
+              fi;
+            done;
+          fi;
+          # Extra: find via find for soc platform paths (e.g., soc/1da4000.ufshc)
+          if [ ! "$target" ]; then
+            target=$(find /dev/block -name "$part" -type l -o -name "$part" -type b 2>/dev/null | head -n1);
+          fi;
           [ "$target" ] && break 2;
         done;
       done;
@@ -991,7 +1010,37 @@ setup_ak() {
   if [ "$target" ]; then
     BLOCK=$(ls $target 2>/dev/null);
   else
-    abort "Unable to determine $BLOCK partition. Aborting...";
+    # Fallback for daisy: hard probe known emmc path (seen as /dev/block/mmcblk0p*)
+    # Use by-name symlink target via getprop or cmdline if available
+    for fallback in /dev/block/mmcblk0p*; do
+      [ -e "$fallback" ] || continue;
+      # Check if partition is boot by label if blkid available
+      if command -v blkid >/dev/null 2>&1; then
+        label=$(blkid "$fallback" 2>/dev/null | grep -o 'PARTLABEL="[^"]*"' | cut -d'"' -f2);
+        if [ "$label" = "boot" ] || [ "$label" = "BOOT" ]; then
+          target=$fallback; BLOCK=$(ls $target 2>/dev/null); break;
+        fi;
+      fi;
+    done;
+    if [ ! "$target" ]; then
+      # Last resort: parse /proc/cmdline androidboot.bootdevice and scan
+      bootdev=$(grep -o 'androidboot.bootdevice=[^ ]*' /proc/cmdline 2>/dev/null | cut -d= -f2);
+      if [ "$bootdev" ] && [ -d "/dev/block/platform/$bootdev/by-name" ]; then
+        if [ -e "/dev/block/platform/$bootdev/by-name/boot" ]; then
+          target=/dev/block/platform/$bootdev/by-name/boot; BLOCK=$(ls $target 2>/dev/null);
+        fi;
+      fi;
+    fi;
+    if [ ! "$target" ]; then
+      # Ultimate fallback: use fstab one more time with verbose error for debug
+      ui_print " ";
+      ui_print "DEBUG: /proc/cmdline: $(cat /proc/cmdline 2>/dev/null | cut -c1-200)";
+      ui_print "DEBUG: fstab: $(cat /etc/recovery.fstab 2>/dev/null | grep boot | head -n1)";
+      ui_print "DEBUG: by-name: $(ls /dev/block/*/by-name/ 2>/dev/null | tr '\n' ' ' | cut -c1-200)";
+      ui_print "DEBUG: platform: $(ls /dev/block/platform/ 2>/dev/null | tr '\n' ' ')";
+      ui_print " ";
+      abort "Unable to determine $BLOCK partition. Aborting...";
+    fi;
   fi;
   if [ ! "$NO_BLOCK_DISPLAY" ]; then
     ui_print "$BLOCK";
