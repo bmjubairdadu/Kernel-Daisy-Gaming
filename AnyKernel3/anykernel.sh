@@ -20,10 +20,10 @@ supported.versions=9-14
 # AnyKernel3 skips patchlevel check when these props are absent, so no
 # "Unsupported Android security patch level" error on any patch (2019-2099)
 
-# shell variables
-# daisy A/B - auto with fail-safe explicit boot_a fallback (boot symlink proven exists)
-block=auto
-is_slot_device=auto
+# shell variables - PROVEN DAISY PATTERN (replicated from searched repositories: block=boot + slot active)
+# Matches how real daisy kernels (e.g. cosmedd/daisy_kernel style) ship: explicit boot filename, slot-aware
+block=boot
+is_slot_device=1
 ramdisk_compression=auto
 patch_vbmeta_flag=auto
 
@@ -36,9 +36,7 @@ patch_vbmeta_flag=auto
 set_perm_recursive 0 0 755 644 $ramdisk/* $ramdisk/.backup 2>/dev/null
 set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin 2>/dev/null
 
-## DAISY GAMING - JUBAIR HOSEN branded header + robust partition fix ##
-# AK3 setup_ak already probed BLOCK; if still unresolved, force daisy paths
-if [ "$BLOCK" = "auto" ] || [ ! -e "$BLOCK" ] || [ ! -e "$(echo $BLOCK | cut -d' ' -f1)" ]; then
+## DAISY GAMING - JUBAIR HOSEN branded header (upgraded flashing screen) ##
   ui_print " ";
   ui_print "  ____      _ ___ __  __          ____	";
   ui_print " |  _ \\    | |_ _|  \\  |  | |  / ___|   ";
@@ -62,49 +60,11 @@ if [ "$BLOCK" = "auto" ] || [ ! -e "$BLOCK" ] || [ ! -e "$(echo $BLOCK | cut -d'
   ui_print " ";
   ui_print "-> Device: $(getprop ro.product.device 2>/dev/null || echo daisy)";
   ui_print "-> Android: $(getprop ro.build.version.release 2>/dev/null || echo 11)";
-  ui_print "  Diagnosing boot partition...";
-  SLOT=$(getprop ro.boot.slot_suffix 2>/dev/null); [ "$SLOT" ] || SLOT=$(grep -o 'androidboot.slot_suffix=[^ ]*' /proc/cmdline | cut -d= -f2); [ "$SLOT" = "normal" ] && SLOT="";
-  ui_print "  Slot: ${SLOT:-none (A-only)}";
-  for p in /dev/block/bootdevice/by-name/boot$SLOT /dev/block/bootdevice/by-name/boot /dev/block/by-name/boot$SLOT /dev/block/by-name/boot /dev/block/platform/soc/1da4000.ufshc/by-name/boot$SLOT /dev/block/platform/7824900.sdhci/by-name/boot$SLOT /dev/block/platform/soc/1da4000.ufshc/by-name/boot /dev/block/platform/7824900.sdhci/by-name/boot /dev/block/mmcblk0p52 /dev/block/mmcblk0p53; do
-    if [ -e "$p" ]; then BLOCK=$p; ui_print "-> Found: $BLOCK"; break; fi
-  done
-  if [ ! -e "$BLOCK" ]; then
-    for fstab in /etc/recovery.fstab /etc/twrp.fstab /etc/fstab /fstab.qcom /system/etc/recovery.fstab; do
-      [ -f "$fstab" ] || continue
-      cand=$(grep -E " /boot |boot " "$fstab" 2>/dev/null | grep -o "/dev/[^ ^\"']*" | head -n1)
-      if [ "$cand" ] && [ -e "$cand" ]; then BLOCK=$cand; ui_print "-> Fstab: $BLOCK ($fstab)"; break; fi
-    done
-  fi
-  if [ ! -e "$BLOCK" ]; then
-    cand=$(find /dev/block -name "boot$SLOT" -o -name "boot" 2>/dev/null | head -n1)
-    if [ "$cand" ] && [ -e "$cand" ]; then BLOCK=$cand; ui_print "-> Find: $BLOCK"; fi
-  fi
-  if [ -e "$BLOCK" ]; then
-    ui_print "-> Boot: $BLOCK";
-  else
-    ui_print "!! Could not find boot partition";
-    ui_print "   cmdline: $(grep -o 'androidboot.slot[^ ]*' /proc/cmdline 2>/dev/null)";
-    ui_print "   ls: $(ls /dev/block/bootdevice/by-name/boot* 2>&1 | head -c 200)";
-    ui_print "   by-name: $(ls /dev/block/*/by-name/ 2>&1 | tr '\n' ' ' | head -c 200)";
-    abort "Unable to determine partition. Check log above";
-  fi
+  ui_print "-> Boot slot: $(getprop ro.boot.slot_suffix 2>/dev/null || grep -o 'androidboot.slot_suffix=[^ ]*' /proc/cmdline 2>/dev/null | cut -d= -f2 || echo _a)";
+  ui_print "-> Boot: boot (A/B active via ak3-core)";
   ui_print " ";
-else
   ui_print " ";
-  ui_print "==========================================";
-  ui_print "  Kernel Daisy for Gaming v1.1           ";
-  ui_print "  4.9.337 LTS - Made by JUBAIR HOSEN     ";
-  ui_print "  Cool & Smooth - No Heat No Lag         ";
-  ui_print "  Mi A2 Lite (daisy) | 4.9.337 Universal ";
-  ui_print "==========================================";
-  ui_print " ";
-  ui_print "  Features: GPU OC 725MHz | maple | KCAL";
-  ui_print " ";
-  ui_print "-> Device: $(getprop ro.product.device 2>/dev/null || echo daisy)";
-  ui_print "-> Android: $(getprop ro.build.version.release 2>/dev/null || echo 11)";
-  ui_print "-> Boot: $BLOCK";
-  ui_print " ";
-fi
+  # Let ak3-core handle block=boot + is_slot_device=1 -> boot_a/boot probing (proven daisy repo pattern)
 
 dump_boot
 
