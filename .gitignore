@@ -1,0 +1,48 @@
+# Build outputs
+out/
+build/
+*.img
+*.zip
+*.tar.gz
+Image.gz-dtb
+Image.gz
+dtbo.img
+*.ko
+
+# Kernel source (cloned by build.sh)
+kernel_source/
+clang/
+gcc64/
+gcc32/
+AnyKernel3_out/
+
+# Toolchains
+toolchain/clang-r450784d/
+toolchain/gcc-64/
+toolchain/gcc-32/
+stock_boot.img
+
+# Logs
+*.log
+build.log
+*.orig
+*.rej
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# IDE
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# AnyKernel3 temp
+AnyKernel3/Image.gz-dtb
+AnyKernel3/*.zip
+AnyKernel3/modules/system/
