@@ -885,11 +885,27 @@ setup_ak() {
   case $IS_SLOT_DEVICE in
     1|auto)
       SLOT=$(getprop ro.boot.slot_suffix 2>/dev/null);
-      [ "$SLOT" ] || SLOT=$(grep -o 'androidboot.slot_suffix=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
+      [ "$SLOT" ] || SLOT=$(grep -o 'androidboot.slot_suffix=[^ ]*' /proc/cmdline 2>/dev/null | cut -d= -f2);
       if [ ! "$SLOT" ]; then
         SLOT=$(getprop ro.boot.slot 2>/dev/null);
-        [ "$SLOT" ] || SLOT=$(grep -o 'androidboot.slot=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
+        [ "$SLOT" ] || SLOT=$(grep -o 'androidboot.slot=[^ ]*' /proc/cmdline 2>/dev/null | cut -d= -f2);
         [ "$SLOT" ] && SLOT=_$SLOT;
+      fi;
+      # OrangeFox recovery esp. daisy has empty slot_suffix but by-name has boot_a/boot_b
+      # Fallback: derive SLOT from existing by-name symlinks or from Primary_Block_Device in recovery config
+      if [ ! "$SLOT" ]; then
+        # Primary_Block_Device shows /dev/block/bootdevice/by-name/boot_a exists, so slot is _a
+        if [ -e /dev/block/bootdevice/by-name/boot_a ]; then SLOT=_a;
+        elif [ -e /dev/block/bootdevice/by-name/boot_b ]; then SLOT=_b;
+        elif [ -e /dev/block/by-name/boot_a ]; then SLOT=_a;
+        elif grep -q "Primary_Block_Device: /dev/block/.*boot_a" /tmp/recovery.log 2>/dev/null; then SLOT=_a;
+        elif grep -q "boot_a.*64MB" /tmp/recovery.log 2>/dev/null; then SLOT=_a;
+        fi;
+      fi;
+      # Bootloader via getprop fallback (daisy  MSm8953_DAISY)
+      if [ ! "$SLOT" ]; then
+        bl=$(getprop ro.boot.bootloader 2>/dev/null | grep -o "_[ab]$" 2>/dev/null);
+        [ "$bl" ] && SLOT=$bl;
       fi;
       [ "$SLOT" == "normal" ] && unset SLOT;
       if [ "$SLOT" ]; then
@@ -905,8 +921,14 @@ setup_ak() {
           ;;
         esac;
       fi;
+      # auto mode must NOT abort on missing SLOT - daisy OrangeFox has empty slot_suffix, use _a
       if [ ! "$SLOT" -a "$IS_SLOT_DEVICE" == 1 ]; then
         abort "Unable to determine active slot. Aborting...";
+      elif [ ! "$SLOT" -a "$IS_SLOT_DEVICE" == "auto" ]; then
+        # auto treats empty as _a (A/B updater device, recovery reports boot_a exists)
+        if [ -e /dev/block/bootdevice/by-name/boot -o -e /dev/block/bootdevice/by-name/boot_a ]; then
+          SLOT=_a;
+        fi;
       fi;
     ;;
   esac;
