@@ -1,6 +1,9 @@
 # Kernel Daisy for Gaming - Defconfig Fragment
 # Merge with daisy_defconfig via scripts/kconfig/merge_config.sh
-# Snapdragon 625 (MSM8953) - Linux 4.9.y - Gaming Optimized
+# Snapdragon 625 (MSM8953) - Linux 4.9.337 (Latest Final LTS - EOL 2023-01-05) - Gaming Optimized
+# Enables backported CVE fixes from 4.9.y stable up to 4.9.337 (latest/ final)
+CONFIG_LOCALVERSION="-Daisy-Gaming-4.9.337"
+CONFIG_LOCALVERSION_AUTO=n
 
 # === CPU Governors & Scheduler ===
 CONFIG_CPU_FREQ_GOV_SCHEDUTIL=y

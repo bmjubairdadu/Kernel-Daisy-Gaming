@@ -4,7 +4,7 @@
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string=Kernel Daisy for Gaming by DaisyGaming @ XDA
+kernel.string=Kernel Daisy for Gaming 4.9.337 LTS by DaisyGaming @ XDA - Latest 4.9 Final
 do.devicecheck=1
 do.modules=0
 do.systemless=1

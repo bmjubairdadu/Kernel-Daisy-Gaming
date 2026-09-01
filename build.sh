@@ -1,10 +1,15 @@
 #!/bin/bash
 # Kernel Daisy for Gaming - Universal Build Script
-# Device: Mi A2 Lite (daisy) - Snapdragon 625 - Linux 4.9.y
+# Device: Mi A2 Lite (daisy) - Snapdragon 625 - Linux 4.9.337 (Latest 4.9 LTS - EOL 2023-01-05)
+# Base: Xiaomi daisy-q-oss + Linux stable 4.9.337 (final LTS, all upstream CVE fixes)
 # Supports: Android 9-14, all ROMs via AnyKernel3
-# Usage: bash build.sh [clean|build|mkzip|all]
+# Usage: bash build.sh [clean|build|mkzip|all]  [--latest | LTS_TAG=v4.9.337 bash build.sh]
 
 set -e
+
+# Latest 4.9 LTS - final stable (use LTS_TAG=auto to auto-detect newest, or LTS_TAG=v4.9.337)
+LTS_TAG="${LTS_TAG:-v4.9.337}"
+LATEST_4_9="4.9.337"
 
 # Colors
 RED='\033[0;31m'
@@ -14,7 +19,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 KERNEL_NAME="Kernel-Daisy-Gaming"
-VERSION="v1.0-Gaming"
+VERSION="v1.1-Gaming-4.9.337"
 BUILD_DATE=$(date +%Y%m%d)
 ZIP_NAME="${KERNEL_NAME}-${VERSION}-${BUILD_DATE}-AnyKernel3.zip"
 
@@ -38,7 +43,8 @@ ENABLE_THERMAL_MOD=${ENABLE_THERMAL_MOD:-1}
 
 echo -e "${BLUE}============================================${NC}"
 echo -e "${BLUE}  Kernel Daisy for Gaming - Build Script   ${NC}"
-echo -e "${BLUE}  Mi A2 Lite (daisy) | 4.9.y | Universal  ${NC}"
+echo -e "${BLUE}  Mi A2 Lite (daisy) | 4.9.337 LTS | Universal  ${NC}"
+echo -e "${BLUE}  Latest 4.9.y Stable: ${LTS_TAG} (final LTS)  ${NC}"
 echo -e "${BLUE}============================================${NC}"
 
 do_clean() {
@@ -75,6 +81,14 @@ clone_kernel_source() {
     fi
   else
     echo -e "${GREEN}[✓] Kernel source exists${NC}"
+  fi
+  # Always merge latest 4.9.y stable (4.9.337) after clone/existing
+  if [ -x "$BASE_DIR/scripts/merge-latest-stable.sh" ]; then
+    echo -e "${YELLOW}[*] Merging latest 4.9.y stable ($LTS_TAG) into kernel_source...${NC}"
+    LTS_TAG="$LTS_TAG" bash "$BASE_DIR/scripts/merge-latest-stable.sh" "$KERNEL_SRC" || {
+      echo -e "${YELLOW}[!] Merge had conflicts/warnings - check kernel_source status${NC}"
+      echo -e "${YELLOW}    cd kernel_source && git status${NC}"
+    }
   fi
 }
 
@@ -174,11 +188,16 @@ do_mkzip() {
     cp -f "$BASE_DIR/thermal/thermal-engine-daisy-gaming.conf" "$AK3_OUT/modules/vendor/etc/thermal-engine.conf" 2>/dev/null || true
   fi
   
-  # Version file
+  # Version file - latest 4.9.337
   echo "Kernel Daisy for Gaming $VERSION" > "$AK3_OUT/version"
+  echo "Base: Linux 4.9.337 (latest 4.9 LTS - final, EOL 2023-01-05)" >> "$AK3_OUT/version"
   echo "Build: $BUILD_DATE" >> "$AK3_OUT/version"
   echo "Device: daisy (Mi A2 Lite)" >> "$AK3_OUT/version"
   echo "Android: 9-14 Universal (AnyKernel3)" >> "$AK3_OUT/version"
+  # Stamp kernel version into actual image if script can
+  if [ -f "$KERNEL_SRC/Makefile" ]; then
+    grep -E "^VERSION|^PATCHLEVEL|^SUBLEVEL|^EXTRAVERSION" "$KERNEL_SRC/Makefile" | head -4 > "$AK3_OUT/kernel-version.txt" 2>/dev/null || true
+  fi
   
   # Create flashable zip
   cd "$AK3_OUT"

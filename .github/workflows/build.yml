@@ -32,10 +32,16 @@ jobs:
           fi
           ls -R AnyKernel3 | head -100
 
-      - name: Build Kernel
+      - name: Merge latest 4.9.y stable (4.9.337) info
         run: |
-          chmod +x build.sh toolchain/setup-clang.sh
-          bash build.sh all
+          echo "Latest 4.9 LTS is 4.9.337 (final, EOL Jan 2023)"
+          echo "Build will auto-merge via build.sh -> scripts/merge-latest-stable.sh"
+          chmod +x scripts/merge-latest-stable.sh || true
+
+      - name: Build Kernel (latest 4.9.337 + gaming)
+        run: |
+          chmod +x build.sh toolchain/setup-clang.sh scripts/merge-latest-stable.sh
+          LTS_TAG=v4.9.337 bash build.sh all
         continue-on-error: true
 
       - name: Create placeholder if build failed (demo)

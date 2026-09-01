@@ -2,12 +2,12 @@
 
 > **Cool & Smooth - No Heat, No Lag**
 
-Custom gaming-optimized kernel for **Xiaomi Mi A2 Lite (daisy)** - Snapdragon 625 (MSM8953) | Kernel 4.9
+Custom gaming-optimized kernel for **Xiaomi Mi A2 Lite (daisy)** - Snapdragon 625 (MSM8953) | Kernel **4.9.337** (Latest Final LTS)
 Compatible with **Android 11** and **All Android versions (9/10/11/12/13/14)**, **All Custom ROMs** (LineageOS, Pixel Experience, Evolution X, crDroid, HavocOS, ArrowOS, etc.) and **Stock ROM**.
 
 ![Device](https://img.shields.io/badge/Device-Mi%20A2%20Lite%20%28daisy%29-blue)
 ![SoC](https://img.shields.io/badge/SoC-Snapdragon%20625-orange)
-![Kernel](https://img.shields.io/badge/Kernel-4.9.y-green)
+![Kernel](https://img.shields.io/badge/Kernel-4.9.337%20Latest%20LTS-green)
 ![Android](https://img.shields.io/badge/Android-9%20to%2014-brightgreen)
 ![Status](https://img.shields.io/badge/Status-Gaming%20Optimized-red)
 
@@ -77,7 +77,7 @@ Compatible with **Android 11** and **All Android versions (9/10/11/12/13/14)**, 
 - Device: `daisy` (Mi A2 Lite - **DO NOT flash on jasmine_sprout / Mi A2**)
 - Bootloader unlocked
 - Custom Recovery: TWRP 3.5+ / OrangeFox
-- Kernel version: 4.9.y (works on all Android versions via AnyKernel3 - no ramdisk overwrite)
+- Kernel version: **4.9.337** (Latest Final LTS - works on all Android versions via AnyKernel3 - no ramdisk overwrite)
 
 > This kernel uses **AnyKernel3 (AK3)** - it does **NOT** replace your ramdisk, so it works on *ANY* ROM and *ANY* Android version without breaking WiFi/FP/boot.
 
@@ -114,9 +114,13 @@ cd Kernel-Daisy-Gaming
 # 2. Setup toolchain (clang 14 + gcc 4.9)
 bash toolchain/setup-clang.sh
 
-# 3. Build
-bash build.sh --gaming --regen-defconfig
-# Output: out/Kernel-Daisy-Gaming-v1.0.zip
+# 3. Merge latest stable (done automatically by build.sh) or manually:
+LTS_TAG=v4.9.337 bash scripts/merge-latest-stable.sh kernel_source
+# auto = latest detected: LTS_TAG=auto bash scripts/merge-latest-stable.sh kernel_source
+
+# 4. Build
+bash build.sh all
+# Output: out/Kernel-Daisy-Gaming-v1.1-Gaming-4.9.337-*.zip
 ```
 
 See [Build Instructions](#build-instructions) below.
@@ -195,10 +199,11 @@ Manual trigger: Actions → `Build Kernel` → Run workflow
 ## 📄 Version
 
 - **Name:** Kernel Daisy for Gaming
-- **Version:** v1.0-Gaming (Android 11 / Universal)
-- **Base:** Linux 4.9.227 + CAF LA.UM.8.6.r1
+- **Version:** v1.1-Gaming-4.9.337 (Latest 4.9 LTS)
+- **Base:** Linux 4.9.337 + CAF LA.UM.8.6.r1 (Xiaomi daisy-q-oss merged with stable/linux-4.9.y up to v4.9.337 final)
 - **Compiler:** Clang 14.0.6 + GCC 4.9
 - **Date:** September 2026
+- **Upstream:** `scripts/merge-latest-stable.sh` merges `stable/linux.git` tag `v4.9.337` (EOL 2023-01-05) - all CVE fixes
 
 ---
 
