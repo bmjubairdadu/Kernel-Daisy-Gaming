@@ -21,11 +21,15 @@ supported.versions=9-14
 # "Unsupported Android security patch level" error on any patch (2019-2099)
 
 # shell variables - PROVEN DAISY PATTERN (replicated from searched repositories: block=boot + slot active)
-# Matches how real daisy kernels (e.g. cosmedd/daisy_kernel style) ship: explicit boot filename, slot-aware
+# Daisy A/B single-slot flash to current partition only (not both a & b)
+# Correct per your request: kernel flashed to current _a/_b slot only, inactive untouched
 block=boot
 is_slot_device=1
 ramdisk_compression=auto
 patch_vbmeta_flag=auto
+# SLOT_SELECT left default (active) - no inactive overwrite
+# For explicit only-active flash: uncomment next line to force active
+# SLOT_SELECT=active;
 
 ## AnyKernel methods (DO NOT CHANGE)
 # import patching functions/variables - see tools/ak3-core.sh for details
@@ -67,8 +71,9 @@ ui_print " ";
 ui_print "  -> Device : $(getprop ro.product.device 2>/dev/null || echo daisy)";
 ui_print "  -> Android: $(getprop ro.build.version.release 2>/dev/null || echo 11)";
 ui_print "  -> Slot   : $(getprop ro.boot.slot_suffix 2>/dev/null || grep -o 'androidboot.slot_suffix=[^ ]*' /proc/cmdline 2>/dev/null | cut -d= -f2 || echo _a)";
-ui_print "  -> Target : boot (A/B active)            ";
-ui_print " ";
+# Safety: ensure not both slots - only active slot
+  ui_print "  -> Target : boot (active slot only - single partition)";
+  ui_print " ";
 # Daisy Android 11 SAR 22MB ramdisk fix: use split_boot (kernel-only, no ramdisk unpack)
 # This avoids magiskboot cpio OOM on OrangeFox 22MB gzip ramdisk
 # Proven fix for 'Unpacking ramdisk failed' on daisy OrangeFox R11.1
