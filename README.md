@@ -86,7 +86,7 @@ Compatible with **Android 11** and **All Android versions (9/10/11/12/13/14)**, 
 ## 📦 Flashable Zip - How to Install
 
 ### Quick Flash:
-1. Download `Kernel-Daisy-Gaming-v1.1-4.9.337-AnyKernel3.zip` from [Releases](https://github.com/bmjubairdadu/Kernel-Daisy-Gaming/releases)
+1. Download `Kernel-Daisy-Gaming-v1.2-4.9.337-AnyKernel3.zip` from [Releases](https://github.com/bmjubairdadu/Kernel-Daisy-Gaming/releases)
 2. Reboot to Recovery (TWRP/OrangeFox)
 3. **Backup boot** (important!)
 4. Flash zip → Wipe cache/dalvik → Reboot

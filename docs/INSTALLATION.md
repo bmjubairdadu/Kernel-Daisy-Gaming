@@ -13,7 +13,7 @@
 
 ## Method 1: Flash via Recovery (Recommended)
 
-1. **Download** `Kernel-Daisy-Gaming-v1.0-AnyKernel3.zip` from Releases
+1. **Download** `Kernel-Daisy-Gaming-v1.2-4.9.337-AnyKernel3.zip` from Releases
 
 2. **Backup** (very important):
    - Reboot to Recovery (Power + Vol Up)
