@@ -21,8 +21,10 @@ supported.versions=9-14
 # "Unsupported Android security patch level" error on any patch (2019-2099)
 
 # shell variables
-block=/dev/block/bootdevice/by-name/boot
-is_slot_device=1
+# daisy (Mi A2 Lite) is A-only (no A/B slots) - using auto lets AK3 probe all paths
+# Fixes "Unable to determine partition" on TWRP where /dev/block/bootdevice/by-name missing
+block=auto
+is_slot_device=0
 ramdisk_compression=auto
 patch_vbmeta_flag=auto
 
