@@ -4,7 +4,7 @@
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string=Kernel Daisy for Gaming 4.9.337 LTS by DaisyGaming @ XDA - Latest 4.9 Final
+kernel.string=Kernel Daisy for Gaming 4.9.337 LTS by JUBAIR HOSEN @ XDA - Latest 4.9 Final
 do.devicecheck=1
 do.modules=0
 do.systemless=1
@@ -37,25 +37,36 @@ patch_vbmeta_flag=auto
 set_perm_recursive 0 0 755 644 $ramdisk/* $ramdisk/.backup 2>/dev/null
 set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin 2>/dev/null
 
-## DAISY GAMING - Robust partition fix (runs BEFORE dump_boot) ##
-# ak3-core setup_ak already ran, but if BLOCK still not resolved, force daisy paths
-# This catches both -e check failure AND unexpanded /dev/block/bootdevice/by-name/boot string
+## DAISY GAMING - JUBAIR HOSEN branded header + robust partition fix ##
+# AK3 setup_ak already probed BLOCK; if still unresolved, force daisy paths
 if [ "$BLOCK" = "auto" ] || [ ! -e "$BLOCK" ] || [ ! -e "$(echo $BLOCK | cut -d' ' -f1)" ]; then
+  ui_print " ";
+  ui_print "  ____      _ ___ __  __          ____	";
+  ui_print " |  _ \\    | |_ _|  \\  |  | |  / ___|   ";
+  ui_print " | | | |_  | || || |\\ | | | | | |      ";
+  ui_print " | |_| | |_| || || |\\| | | | |_| |__  ";
+  ui_print " |____/ \\___/|___|_| \\_|_|  \\____|  ";
   ui_print " ";
   ui_print "==========================================";
   ui_print "  Kernel Daisy for Gaming v1.1           ";
-  ui_print "  4.9.337 LTS - Latest Final             ";
-  ui_print "  Cool & Smooth - No Heat No Lag         ";
+  ui_print "  4.9.337 LTS - Latest 4.9 Final (JUBAIR)";
+  ui_print "  Made by JUBAIR HOSEN                   ";
   ui_print "  Mi A2 Lite (daisy) | Snapdragon 625    ";
-  ui_print "  Universal 9-14 - Any ROM               ";
+  ui_print "  Kernel 4.9.337 | Android 9-14 Universal";
   ui_print "==========================================";
+  ui_print " ";
+  ui_print "  Features:";
+  ui_print "   - Cool thermal 42C + no throttle     ";
+  ui_print "   - GPU 650->725MHz OC | schedutil boost";
+  ui_print "   - Maple I/O | 300Hz touch | ZRAM lz4 ";
+  ui_print "   - KCAL + WireGuard + FastCharge      ";
   ui_print " ";
   ui_print "-> Device: $(getprop ro.product.device 2>/dev/null || echo daisy)";
   ui_print "-> Android: $(getprop ro.build.version.release 2>/dev/null || echo 11)";
   ui_print "  Diagnosing boot partition...";
   SLOT=$(getprop ro.boot.slot_suffix 2>/dev/null); [ "$SLOT" ] || SLOT=$(grep -o 'androidboot.slot_suffix=[^ ]*' /proc/cmdline | cut -d= -f2); [ "$SLOT" = "normal" ] && SLOT="";
   ui_print "  Slot: ${SLOT:-none (A-only)}";
-  for p in /dev/block/bootdevice/by-name/boot$SLOT /dev/block/bootdevice/by-name/boot /dev/block/by-name/boot$SLOT /dev/block/by-name/boot /dev/block/platform/soc/1da4000.ufshc/by-name/boot$SLOT /dev/block/platform/7824900.sdhci/by-name/boot$SLOT /dev/block/platform/soc/1da4000.ufshc/by-name/boot /dev/block/platform/7824900.sdhci/by-name/boot; do
+  for p in /dev/block/bootdevice/by-name/boot$SLOT /dev/block/bootdevice/by-name/boot /dev/block/by-name/boot$SLOT /dev/block/by-name/boot /dev/block/platform/soc/1da4000.ufshc/by-name/boot$SLOT /dev/block/platform/7824900.sdhci/by-name/boot$SLOT /dev/block/platform/soc/1da4000.ufshc/by-name/boot /dev/block/platform/7824900.sdhci/by-name/boot /dev/block/mmcblk0p52 /dev/block/mmcblk0p53; do
     if [ -e "$p" ]; then BLOCK=$p; ui_print "-> Found: $BLOCK"; break; fi
   done
   if [ ! -e "$BLOCK" ]; then
@@ -83,11 +94,12 @@ else
   ui_print " ";
   ui_print "==========================================";
   ui_print "  Kernel Daisy for Gaming v1.1           ";
-  ui_print "  4.9.337 LTS - Latest Final             ";
+  ui_print "  4.9.337 LTS - Made by JUBAIR HOSEN     ";
   ui_print "  Cool & Smooth - No Heat No Lag         ";
-  ui_print "  Mi A2 Lite (daisy) | Snapdragon 625    ";
-  ui_print "  Universal 9-14 - Any ROM               ";
+  ui_print "  Mi A2 Lite (daisy) | 4.9.337 Universal ";
   ui_print "==========================================";
+  ui_print " ";
+  ui_print "  Features: GPU OC 725MHz | maple | KCAL";
   ui_print " ";
   ui_print "-> Device: $(getprop ro.product.device 2>/dev/null || echo daisy)";
   ui_print "-> Android: $(getprop ro.build.version.release 2>/dev/null || echo 11)";
@@ -98,7 +110,7 @@ fi
 dump_boot
 
 ui_print "-> Extracting boot image... OK";
-ui_print "-> Patching kernel (Image.gz-dtb)...";
+ui_print "-> Patching kernel (Image.gz-dtb by JUBAIR HOSEN)...";
 
 # begin ramdisk changes
 ui_print "-> Installing gaming tweaks...";
@@ -126,10 +138,15 @@ if [ -f $home/thermal-engine-daisy-gaming.conf ]; then
 fi
 
 write_boot
-ui_print "-> Flashing boot image... OK";
+ui_print "-> Flashing boot image to $BLOCK ... OK";
 ui_print " ";
 ui_print "==========================================";
-ui_print "  Flash Complete! Reboot & Game Cool!     ";
-ui_print "  Thermal 42C | GPU 725MHz | schedutil    ";
+ui_print "  Flash Complete! - JUBAIR HOSEN          ";
+ui_print "  Kernel Daisy v1.1 4.9.337 LTS Installed ";
+ui_print "  Reboot System & Enjoy Cool Gaming!      ";
+ui_print "  github.com/bmjubairdadu/Kernel-Daisy   ";
+ui_print "==========================================";
+ui_print " "; 
+ui_print "  Credits: JUBAIR HOSEN | XDA | osm0sis AK3";
 ui_print "==========================================";
 ## end install

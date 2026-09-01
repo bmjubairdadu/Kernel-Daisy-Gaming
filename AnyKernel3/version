@@ -1,6 +1,8 @@
-Kernel Daisy for Gaming v1.1
-Base: Linux 4.9.337 Latest LTS (final, EOL 2023-01-05)
+Kernel Daisy for Gaming v1.1 - by JUBAIR HOSEN
+Base: Linux 4.9.337 Latest LTS (EOL 2023-01-05)
+Made by: JUBAIR HOSEN
 Build: 20260901
-Device: daisy
-Android: 9-14 Universal
-Merged: stable v4.9.337
+Device: daisy Mi A2 Lite Snapdragon 625
+Android: 9-14 Universal Any ROM
+Features: Thermal 42C GPU 725MHz maple KCAL WireGuard
+GitHub: github.com/bmjubairdadu/Kernel-Daisy-Gaming
