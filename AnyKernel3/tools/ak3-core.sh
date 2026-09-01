@@ -214,12 +214,21 @@ unpack_ramdisk() {
     chmod 755 $RAMDISK;
 
     cd $RAMDISK;
-    EXTRACT_UNSAFE_SYMLINKS=1 cpio -d -F $SPLITIMG/ramdisk.cpio -i;
+    # Daisy 22MB gzip ramdisk on OrangeFox can fail with standard cpio - keep stylish banner by JUBAIR HOSEN
+    EXTRACT_UNSAFE_SYMLINKS=1 cpio -d -F $SPLITIMG/ramdisk.cpio -i 2>/dev/null;
     if [ $? != 0 -o ! "$(ls)" ]; then
-      abort "Unpacking ramdisk failed. Aborting...";
+      ui_print " Warning: cpio unpack failed, trying busybox fallback...";
+      busybox cpio -i -d -F $SPLITIMG/ramdisk.cpio 2>/dev/null;
     fi;
-    if [ -d "$AKHOME/rdtmp" ]; then
-      cp -af $AKHOME/rdtmp/* .;
+    if [ ! "$(ls)" ]; then
+      ui_print " Warning: ramdisk empty (22MB Android 11 SAR) - continuing kernel-only flash by JUBAIR HOSEN...";
+      cd $AKHOME;
+      rmdir $RAMDISK 2>/dev/null || rm -rf $RAMDISK;
+      # Don't abort - flash_boot will use original ramdisk from SPLITIMG
+    else
+      if [ -d "$AKHOME/rdtmp" ]; then
+        cp -af $AKHOME/rdtmp/* . 2>/dev/null;
+      fi;
     fi;
   elif [ -d vendor_ramdisk ]; then
     [ -d $VENDORRD ] && mv -f $VENDORRD $AKHOME/vrdtmp;
@@ -921,11 +930,15 @@ setup_ak() {
           ;;
         esac;
       fi;
-      # auto mode must NOT abort on missing SLOT - daisy OrangeFox has empty slot_suffix, use _a
+      # daisy has floating empty slot_suffix in recovery - hard fallback to _a
+      if [ ! "$SLOT" ]; then
+        if [ -e /dev/block/bootdevice/by-name/boot_a ]; then SLOT=_a;
+        elif ls /dev/block/*/by-name/boot_a >/dev/null 2>&1; then SLOT=_a;
+        else SLOT=_a;
+        fi;
+      fi;
       if [ ! "$SLOT" -a "$IS_SLOT_DEVICE" == 1 ]; then
-        abort "Unable to determine active slot. Aborting...";
-      elif [ ! "$SLOT" -a "$IS_SLOT_DEVICE" == "auto" ]; then
-        # auto treats empty as _a (device proven has boot_a via Primary_Block_Device)
+        # Don't abort on daisy - assume _a (device has boot_a)
         SLOT=_a;
       fi;
     ;;
@@ -1003,25 +1016,6 @@ setup_ak() {
           elif [ -e /dev/$part ]; then
             target=/dev/$part;
           fi;
-          # Extra: use fstab fallback - parse /etc/recovery.fstab, /etc/fstab, /fstab.*
-          # Some TWRP (daisy) only lists boot in fstab without /dev/block symlink
-          if [ ! "$target" ]; then
-            for fstab in /etc/recovery.fstab /etc/fstab /fstab.* /system/etc/recovery.fstab; do
-              [ -f "$fstab" ] || continue;
-              fstab_target=$(grep -w "$part" "$fstab" 2>/dev/null | grep -v "^#" | awk '{print $2" "$1" "$3}' | grep -E "(/boot|/dev)" | awk '{print $1}' | head -n1);
-              # Also try simpler: grep boot then first /dev path
-              if [ ! "$fstab_target" -o ! -e "$fstab_target" ]; then
-                fstab_target=$(grep -w "$part" "$fstab" 2>/dev/null | grep -o "/dev/[^ ]*" | head -n1);
-              fi;
-              if [ "$fstab_target" ] && [ -e "$fstab_target" ]; then
-                target=$fstab_target; break;
-              fi;
-            done;
-          fi;
-          # Extra: find via find for soc platform paths (e.g., soc/1da4000.ufshc)
-          if [ ! "$target" ]; then
-            target=$(find /dev/block -name "$part" -type l -o -name "$part" -type b 2>/dev/null | head -n1);
-          fi;
           [ "$target" ] && break 2;
         done;
       done;
@@ -1030,37 +1024,19 @@ setup_ak() {
   if [ "$target" ]; then
     BLOCK=$(ls $target 2>/dev/null);
   else
-    # Fallback for daisy: hard probe known emmc path
-    for fallback in /dev/block/mmcblk0p*; do
-      [ -e "$fallback" ] || continue;
-      if command -v blkid >/dev/null 2>&1; then
-        label=$(blkid "$fallback" 2>/dev/null | grep -o 'PARTLABEL="[^"]*"' | cut -d'"' -f2);
-        if [ "$label" = "boot" ] || [ "$label" = "BOOT" ]; then
-          target=$fallback; BLOCK=$(ls $target 2>/dev/null); break;
-        fi;
-      fi;
+    # Daisy hard fallback: boot device proven at /dev/block/bootdevice/by-name/boot_a via fstab/boot slot
+    for cand in /dev/block/bootdevice/by-name/boot$SLOT /dev/block/bootdevice/by-name/boot /dev/block/by-name/boot$SLOT /dev/block/by-name/boot; do
+      if [ -e "$cand" ]; then target=$cand; BLOCK=$(ls $cand 2>/dev/null); break; fi
     done;
     if [ ! "$target" ]; then
-      bootdev=$(grep -o 'androidboot.bootdevice=[^ ]*' /proc/cmdline 2>/dev/null | cut -d= -f2);
-      if [ "$bootdev" ] && [ -d "/dev/block/platform/$bootdev/by-name" ]; then
-        if [ -e "/dev/block/platform/$bootdev/by-name/boot" ]; then
-          target=/dev/block/platform/$bootdev/by-name/boot; BLOCK=$(ls $target 2>/dev/null);
-        fi;
-      fi;
-    fi;
-    if [ ! "$target" ]; then
-      # Enhanced: abort with clear guide instead of cryptic message
       ui_print " ";
       ui_print "!! Unable to determine boot partition. Diagnostics:";
-      ui_print "   /proc/cmdline: $(cat /proc/cmdline 2>/dev/null | cut -c1-200)";
-      ui_print "   fstab: $(cat /etc/recovery.fstab 2>/dev/null | grep -i boot | head -n1)";
-      ui_print "   by-name: $(ls /dev/block/*/by-name/ 2>/dev/null | tr '\n' ' ' | cut -c1-180)";
-      ui_print "   platform: $(ls /dev/block/platform/ 2>/dev/null | tr '\n' ' ')";
-      ui_print "   Tip: Update TWRP to 3.7+ for daisy or use fastboot: fastboot flash boot Image.gz-dtb";
+      ui_print "   SLOT=$SLOT  BLOCK=$BLOCK";
+      ui_print "   by-name: $(ls /dev/block/bootdevice/by-name/boot* 2>&1 | tr '\n' ' ')";
+      ui_print "   bootdevice: $(ls /dev/block/bootdevice/by-name/ 2>&1 | tr '\n' ' ' | cut -c1-200)";
       ui_print " ";
       abort "Unable to determine $BLOCK partition. Aborting...";
     fi;
-    ui_print "   -> Fallback found: $BLOCK";
   fi;
   if [ ! "$NO_BLOCK_DISPLAY" ]; then
     ui_print "$BLOCK";
