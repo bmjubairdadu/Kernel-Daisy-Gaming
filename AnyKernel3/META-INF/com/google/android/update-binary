@@ -559,8 +559,9 @@ setup_env;
 
 do_devicecheck;
 do_versioncheck;
-do_levelcheck;
-do_vendorlevelcheck;
+# Patchlevel checks disabled for universal support - any security patch allowed
+# do_levelcheck;
+# do_vendorlevelcheck;
 
 ui_print "Installing...";
 ash anykernel.sh;

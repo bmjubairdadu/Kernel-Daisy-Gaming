@@ -15,9 +15,10 @@ device.name2=daisy_sprout
 device.name3=Mi A2 Lite
 device.name4=Redmi 6 Pro
 supported.versions=9-14
-supported.patchlevels=2019-09-01 - 2099-12-31
-supported.vendorpatchlevels=2019-09-01 - 2099-12-31
 '; } # end properties
+# Note: supported.patchlevels / vendorpatchlevels REMOVED for universal ROM support
+# AnyKernel3 skips patchlevel check when these props are absent, so no
+# "Unsupported Android security patch level" error on any patch (2019-2099)
 
 # shell variables
 block=/dev/block/bootdevice/by-name/boot
