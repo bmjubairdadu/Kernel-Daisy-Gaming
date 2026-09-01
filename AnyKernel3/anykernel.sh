@@ -21,9 +21,10 @@ supported.versions=9-14
 # "Unsupported Android security patch level" error on any patch (2019-2099)
 
 # shell variables
-# daisy (Mi A2 Lite) is A/B slotted (boot_a/boot_b) per recovery log
-# Use auto + slot auto so active slot _a/_b is correctly detected
-block=auto
+# daisy - explicit boot path proven via recovery fstab + ls by-name
+# Permanent fix: don't use auto probing (overwritten by slot logic failure)
+# Use /dev/block/bootdevice/by-name/boot which recovery log shows exists + points to mmcblk0p71
+block=/dev/block/bootdevice/by-name/boot
 is_slot_device=auto
 ramdisk_compression=auto
 patch_vbmeta_flag=auto
