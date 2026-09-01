@@ -1010,11 +1010,9 @@ setup_ak() {
   if [ "$target" ]; then
     BLOCK=$(ls $target 2>/dev/null);
   else
-    # Fallback for daisy: hard probe known emmc path (seen as /dev/block/mmcblk0p*)
-    # Use by-name symlink target via getprop or cmdline if available
+    # Fallback for daisy: hard probe known emmc path
     for fallback in /dev/block/mmcblk0p*; do
       [ -e "$fallback" ] || continue;
-      # Check if partition is boot by label if blkid available
       if command -v blkid >/dev/null 2>&1; then
         label=$(blkid "$fallback" 2>/dev/null | grep -o 'PARTLABEL="[^"]*"' | cut -d'"' -f2);
         if [ "$label" = "boot" ] || [ "$label" = "BOOT" ]; then
@@ -1023,7 +1021,6 @@ setup_ak() {
       fi;
     done;
     if [ ! "$target" ]; then
-      # Last resort: parse /proc/cmdline androidboot.bootdevice and scan
       bootdev=$(grep -o 'androidboot.bootdevice=[^ ]*' /proc/cmdline 2>/dev/null | cut -d= -f2);
       if [ "$bootdev" ] && [ -d "/dev/block/platform/$bootdev/by-name" ]; then
         if [ -e "/dev/block/platform/$bootdev/by-name/boot" ]; then
@@ -1032,15 +1029,18 @@ setup_ak() {
       fi;
     fi;
     if [ ! "$target" ]; then
-      # Ultimate fallback: use fstab one more time with verbose error for debug
+      # Enhanced: abort with clear guide instead of cryptic message
       ui_print " ";
-      ui_print "DEBUG: /proc/cmdline: $(cat /proc/cmdline 2>/dev/null | cut -c1-200)";
-      ui_print "DEBUG: fstab: $(cat /etc/recovery.fstab 2>/dev/null | grep boot | head -n1)";
-      ui_print "DEBUG: by-name: $(ls /dev/block/*/by-name/ 2>/dev/null | tr '\n' ' ' | cut -c1-200)";
-      ui_print "DEBUG: platform: $(ls /dev/block/platform/ 2>/dev/null | tr '\n' ' ')";
+      ui_print "!! Unable to determine boot partition. Diagnostics:";
+      ui_print "   /proc/cmdline: $(cat /proc/cmdline 2>/dev/null | cut -c1-200)";
+      ui_print "   fstab: $(cat /etc/recovery.fstab 2>/dev/null | grep -i boot | head -n1)";
+      ui_print "   by-name: $(ls /dev/block/*/by-name/ 2>/dev/null | tr '\n' ' ' | cut -c1-180)";
+      ui_print "   platform: $(ls /dev/block/platform/ 2>/dev/null | tr '\n' ' ')";
+      ui_print "   Tip: Update TWRP to 3.7+ for daisy or use fastboot: fastboot flash boot Image.gz-dtb";
       ui_print " ";
       abort "Unable to determine $BLOCK partition. Aborting...";
     fi;
+    ui_print "   -> Fallback found: $BLOCK";
   fi;
   if [ ! "$NO_BLOCK_DISPLAY" ]; then
     ui_print "$BLOCK";
