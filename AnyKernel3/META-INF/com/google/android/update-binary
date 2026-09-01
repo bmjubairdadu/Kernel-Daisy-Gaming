@@ -1,0 +1,5 @@
+#!/sbin/sh
+# Dummy update-binary for local zip - real AK3 provides proper binary on device/build
+OUTFD=$1
+ui_print() { echo "ui_print \"; echo "ui_print \" > /proc/self/fd/$OUTFD; }
+ui_print "Kernel Daisy for Gaming - AnyKernel3"
