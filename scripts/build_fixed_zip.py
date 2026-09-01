@@ -10,9 +10,9 @@ OUT = BASE / "out"
 
 # Ensure LF and executable bits sources are correct
 # Choose latest version name
-zip_name = "Kernel-Daisy-Gaming-v1.1-4.9.337-AnyKernel3.zip"
+zip_name = "Kernel-Daisy-Gaming-v1.2-4.9.337-AnyKernel3.zip"
 zip_path = OUT / zip_name
-zip_path_dated = OUT / f"Kernel-Daisy-Gaming-v1.1-4.9.337-AnyKernel3-{__import__('datetime').date.today().strftime('%Y%m%d')}.zip"
+zip_path_dated = OUT / f"Kernel-Daisy-Gaming-v1.2-4.9.337-AnyKernel3-{__import__('datetime').date.today().strftime('%Y%m%d')}.zip"
 
 OUT.mkdir(parents=True, exist_ok=True)
 

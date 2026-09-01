@@ -19,7 +19,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 KERNEL_NAME="Kernel-Daisy-Gaming"
-VERSION="v1.1-Gaming-4.9.337"
+VERSION="v1.2-Gaming-4.9.337"
 BUILD_DATE=$(date +%Y%m%d)
 ZIP_NAME="${KERNEL_NAME}-${VERSION}-${BUILD_DATE}-AnyKernel3.zip"
 

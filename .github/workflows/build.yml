@@ -68,12 +68,12 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.1-4.9.337-${{ github.run_number }}
-          name: "Kernel Daisy Gaming v1.1 4.9.337 by JUBAIR HOSEN - Build ${{ github.run_number }}"
+          tag_name: v1.2-4.9.337-${{ github.run_number }}
+          name: "Kernel Daisy Gaming v1.2 4.9.337 by JUBAIR HOSEN - Build ${{ github.run_number }}"
           draft: false
           prerelease: false
           body: |
-            ## Kernel Daisy for Gaming v1.1 - 4.9.337 LTS by JUBAIR HOSEN
+            ## Kernel Daisy for Gaming v1.2 - 4.9.337 LTS by JUBAIR HOSEN
             **Cool & Smooth - No Heat, No Lag** | Snapdragon 625 | Mi A2 Lite (daisy)
 
             ### Flash via TWRP/OrangeFox
