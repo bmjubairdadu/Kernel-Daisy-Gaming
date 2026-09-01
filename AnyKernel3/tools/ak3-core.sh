@@ -925,10 +925,8 @@ setup_ak() {
       if [ ! "$SLOT" -a "$IS_SLOT_DEVICE" == 1 ]; then
         abort "Unable to determine active slot. Aborting...";
       elif [ ! "$SLOT" -a "$IS_SLOT_DEVICE" == "auto" ]; then
-        # auto treats empty as _a (A/B updater device, recovery reports boot_a exists)
-        if [ -e /dev/block/bootdevice/by-name/boot -o -e /dev/block/bootdevice/by-name/boot_a ]; then
-          SLOT=_a;
-        fi;
+        # auto treats empty as _a (device proven has boot_a via Primary_Block_Device)
+        SLOT=_a;
       fi;
     ;;
   esac;
@@ -972,12 +970,12 @@ setup_ak() {
       fi;
     ;;
     *)
-      # maintain brief lists of historic matching partition type names for boot, recovery and init_boot/ramdisk
+      # maintain brief lists - DAISY OVERRIDE: skip init_boot on 4.9 daisy (causes false probing)
       plistboot="boot BOOT LNX android_boot bootimg KERN-A kernel KERNEL";
       plistreco="recovery RECOVERY SOS android_recovery recovery_ramdisk";
       plistinit="init_boot ramdisk";
       case $BLOCK in
-        auto) parttype="$plistinit $plistboot";;
+        auto) parttype="$plistboot";; # daisy: direct boot, not init_boot
         boot|kernel) parttype=$plistboot;;
         recovery|recovery_ramdisk) parttype=$plistreco;;
         init_boot|ramdisk) parttype=$plistinit;;

@@ -21,10 +21,8 @@ supported.versions=9-14
 # "Unsupported Android security patch level" error on any patch (2019-2099)
 
 # shell variables
-# daisy - explicit boot path proven via recovery fstab + ls by-name
-# Permanent fix: don't use auto probing (overwritten by slot logic failure)
-# Use /dev/block/bootdevice/by-name/boot which recovery log shows exists + points to mmcblk0p71
-block=/dev/block/bootdevice/by-name/boot
+# daisy A/B - auto with fail-safe explicit boot_a fallback (boot symlink proven exists)
+block=auto
 is_slot_device=auto
 ramdisk_compression=auto
 patch_vbmeta_flag=auto
